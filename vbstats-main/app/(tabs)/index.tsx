@@ -100,18 +100,42 @@ const VBSTATS = () => {
   };
 
   //handler pour les points
-  const handlePointA = () => {
+  const handlePointA = async () => {
+    const timestamp = new Date().toISOString();
+    const newScore = scoreA + 1;
+
+    // Enregistrer la fin du rally dans le CSV
+    await csvService.logAction({
+      timestamp,
+      player: 'ÉQUIPE A',
+      action: 'Point gagné - Fin de rally',
+      score: `${newScore}-${scoreB}`,
+      manche: `${mancheA}-${mancheB}`,
+    });
+
     if(scoreA < 25){
-      setScoreA(scoreA + 1);
+      setScoreA(newScore);
     } else {
       Alert.alert('Info', 'Set terminé');
       handleManche();
     }
   };
 
-  const handlePointB = () => {
+  const handlePointB = async () => {
+    const timestamp = new Date().toISOString();
+    const newScore = scoreB + 1;
+
+    // Enregistrer la fin du rally dans le CSV
+    await csvService.logAction({
+      timestamp,
+      player: 'ÉQUIPE B',
+      action: 'Point gagné - Fin de rally',
+      score: `${scoreA}-${newScore}`,
+      manche: `${mancheA}-${mancheB}`,
+    });
+
     if(scoreB < 25){
-      setScoreB(scoreB + 1);
+      setScoreB(newScore);
     } else {
       Alert.alert('Info', 'Set terminé');
       handleManche();
@@ -217,21 +241,13 @@ const VBSTATS = () => {
               <View style={styles.setSection}>
                 <View style={styles.setScores}>
                   <View style={styles.setBox}>
-                    <TouchableOpacity onPress={handleManche}>
-                      <Text style={styles.setBtnText}>{mancheA}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handlePointA}>
-                      <Text style={styles.mainScoreText}>{scoreA}</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.setBtnText}>{mancheA}</Text>
+                    <Text style={styles.mainScoreText}>{scoreA}</Text>
                   </View>
                   <Text style={styles.vsText}>VS</Text>
                   <View style={styles.setBox}>
-                    <TouchableOpacity onPress={handleManche}>
-                      <Text style={styles.setBtnText}>{mancheB}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handlePointB}>
-                      <Text style={styles.mainScoreText}>{scoreB}</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.setBtnText}>{mancheB}</Text>
+                    <Text style={styles.mainScoreText}>{scoreB}</Text>
                   </View>
                 </View>
               </View>
@@ -309,6 +325,22 @@ const VBSTATS = () => {
                 </View>
               </View>
             </View>
+          </View>
+
+          {/* Boutons de fin de rally */}
+          <View style={styles.rallyButtonsSection}>
+            <TouchableOpacity
+              style={[styles.rallyButton, styles.rallyButtonA]}
+              onPress={handlePointA}
+            >
+              <Text style={styles.rallyButtonText}>Point Équipe A</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.rallyButton, styles.rallyButtonB]}
+              onPress={handlePointB}
+            >
+              <Text style={styles.rallyButtonText}>Point Équipe B</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -767,6 +799,36 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 18,
+  },
+
+  // Boutons de fin de rally
+  rallyButtonsSection: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  rallyButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  rallyButtonA: {
+    backgroundColor: '#10b981',
+  },
+  rallyButtonB: {
+    backgroundColor: '#3b82f6',
+  },
+  rallyButtonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 
