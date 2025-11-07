@@ -24,7 +24,7 @@ const VBSTATS = () => {
   const [mancheB, setMancheB] = useState(0);
 
   //handler pour les action des joueurs
-  const handlePlayerAction = (player, action) => {
+  const handlePlayerAction = (player: string, action: string) => {
     Alert.alert('Action', `${player} - ${action}`);
   };
 
@@ -38,7 +38,7 @@ const VBSTATS = () => {
     Alert.alert('Time Out', 'Time Out demandé');
   };
 
-  const handlePasse = (section) => {
+  const handlePasse = (section: string) => {
     Alert.alert('Passe', `Passe effectuée - ${section}`);
   };
 
@@ -71,7 +71,13 @@ const VBSTATS = () => {
     setScoreB(0);
   }
 
-  const PlayerGroup = ({ playerNumber, playerName }) => (
+  interface PlayerGroupProps {
+    rotationNumber?: string;
+    playerNumber: string;
+    playerName: string;
+  }
+
+  const PlayerGroup = ({ playerNumber, playerName }: PlayerGroupProps) => (
     <View style={styles.playerGroup}>
       <Text style={styles.playerNumber}>{playerNumber} | {playerName}</Text>
       <View style={styles.playerControls}>
