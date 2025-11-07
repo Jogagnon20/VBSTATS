@@ -13,6 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { csvService } from '@/Service/CsvService';
 import PlayerSwitchModal, { Player } from '@/components/PlayerSwitchModal';
+import TimerModal from '@/components/TimerModal';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -26,6 +27,10 @@ const VBSTATS = () => {
   const [changementB, setChangementB] = useState(0);
   const [mancheA, setMancheA] = useState(0);
   const [mancheB, setMancheB] = useState(0);
+
+  // États pour les timers
+  const [showSetTimer, setShowSetTimer] = useState(false);
+  const [showTimeOutTimer, setShowTimeOutTimer] = useState(false);
 
   // État des joueurs avec positions
   const [players, setPlayers] = useState<Player[]>([
@@ -80,7 +85,7 @@ const VBSTATS = () => {
 
   //handler pour les time outs
   const handleTimeOut = () => {
-    Alert.alert('Time Out', 'Time Out demandé');
+    setShowTimeOutTimer(true);
   };
 
   const handlePasse = async (section: string) => {
@@ -151,6 +156,9 @@ const VBSTATS = () => {
     }
     setScoreA(0);
     setScoreB(0);
+
+    // Démarrer le timer de 3 minutes pour la fin du set
+    setShowSetTimer(true);
   }
 
   // Handlers pour retirer des points
@@ -481,6 +489,34 @@ const VBSTATS = () => {
           </View>
         </View>
       {/* </View> */}
+
+      {/* Timer de fin de set (3 minutes) */}
+      <TimerModal
+        visible={showSetTimer}
+        duration={180} // 3 minutes = 180 secondes
+        title="⏱️ Pause entre sets"
+        onComplete={() => {
+          setShowSetTimer(false);
+          Alert.alert('Temps écoulé', 'Les 3 minutes sont écoulées !');
+        }}
+        onStop={() => {
+          setShowSetTimer(false);
+        }}
+      />
+
+      {/* Timer de time-out (30 secondes) */}
+      <TimerModal
+        visible={showTimeOutTimer}
+        duration={30} // 30 secondes
+        title="⏸️ Time Out"
+        onComplete={() => {
+          setShowTimeOutTimer(false);
+          Alert.alert('Temps écoulé', 'Le time-out est terminé !');
+        }}
+        onStop={() => {
+          setShowTimeOutTimer(false);
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -678,47 +714,47 @@ const styles = StyleSheet.create({
   },
   playerControls: {
     flexDirection: 'row',
-    gap: 4,
-    marginBottom: 5,
+    gap: 6,
+    marginBottom: 6,
     width: '100%',
   },
   playerBtn: {
     backgroundColor: '#3b82f6',
     borderWidth: 1,
     borderColor: '#2563eb',
-    paddingVertical: 6,
-    paddingHorizontal: 2,
-    borderRadius: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 6,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 28,
+    minHeight: 40,
   },
   playerBtnText: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#ffffff',
     fontWeight: 'bold',
     textAlign: 'center',
   },
   actionButtons: {
     flexDirection: 'row',
-    gap: 4,
+    gap: 6,
     width: '100%',
   },
   actionBtn: {
     backgroundColor: '#ef4444',
     borderWidth: 1,
     borderColor: '#dc2626',
-    paddingVertical: 6,
-    paddingHorizontal: 2,
-    borderRadius: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 6,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 28,
+    minHeight: 40,
   },
   actionBtnText: {
-    fontSize: 8,
+    fontSize: 12,
     color: '#ffffff',
     fontWeight: 'bold',
     textAlign: 'center',
@@ -727,18 +763,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#06b6d4',
     borderWidth: 1,
     borderColor: '#0891b2',
-    paddingVertical: 6,
-    paddingHorizontal: 2,
-    borderRadius: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 6,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 28,
+    minHeight: 40,
   },
   passeBtnText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    fontSize: 9,
+    fontSize: 12,
     textAlign: 'center',
   },
 
