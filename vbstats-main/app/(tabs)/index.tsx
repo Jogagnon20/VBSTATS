@@ -10,12 +10,14 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { csvService } from '@/Service/CsvService';
 import PlayerSwitchModal, { Player } from '@/components/PlayerSwitchModal';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const VBSTATS = () => {
+  const router = useRouter();
   const [scoreA, setScoreA] = useState(0);
   const [scoreB, setScoreB] = useState(0);
   const [timeOutA, setTimeOutA] = useState(0);
@@ -24,7 +26,6 @@ const VBSTATS = () => {
   const [changementB, setChangementB] = useState(0);
   const [mancheA, setMancheA] = useState(0);
   const [mancheB, setMancheB] = useState(0);
-  const [showSwitchModal, setShowSwitchModal] = useState(false);
 
   // État des joueurs avec positions
   const [players, setPlayers] = useState<Player[]>([
@@ -74,7 +75,7 @@ const VBSTATS = () => {
 
   //handler pour les changements
   const handleSwitch = () => {
-    setShowSwitchModal(true);
+    router.push('/switch-players');
   };
 
   //handler pour les time outs
@@ -151,6 +152,51 @@ const VBSTATS = () => {
     setScoreA(0);
     setScoreB(0);
   }
+
+  // Handlers pour retirer des points
+  const handleRemovePointA = async () => {
+    if (scoreA === 0) {
+      Alert.alert('Attention', 'Le score ne peut pas être négatif');
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const newScore = scoreA - 1;
+
+    // Enregistrer le retrait de point dans le CSV
+    await csvService.logAction({
+      timestamp,
+      player: 'ÉQUIPE A',
+      action: 'Retrait de point (correction)',
+      score: `${newScore}-${scoreB}`,
+      manche: `${mancheA}-${mancheB}`,
+    });
+
+    setScoreA(newScore);
+    Alert.alert('Correction', 'Point retiré pour Équipe A');
+  };
+
+  const handleRemovePointB = async () => {
+    if (scoreB === 0) {
+      Alert.alert('Attention', 'Le score ne peut pas être négatif');
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const newScore = scoreB - 1;
+
+    // Enregistrer le retrait de point dans le CSV
+    await csvService.logAction({
+      timestamp,
+      player: 'ÉQUIPE B',
+      action: 'Retrait de point (correction)',
+      score: `${scoreA}-${newScore}`,
+      manche: `${mancheA}-${mancheB}`,
+    });
+
+    setScoreB(newScore);
+    Alert.alert('Correction', 'Point retiré pour Équipe B');
+  };
 
   interface PlayerGroupProps {
     rotationNumber?: string;
@@ -329,18 +375,34 @@ const VBSTATS = () => {
 
           {/* Boutons de fin de rally */}
           <View style={styles.rallyButtonsSection}>
-            <TouchableOpacity
-              style={[styles.rallyButton, styles.rallyButtonA]}
-              onPress={handlePointA}
-            >
-              <Text style={styles.rallyButtonText}>Point Équipe A</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.rallyButton, styles.rallyButtonB]}
-              onPress={handlePointB}
-            >
-              <Text style={styles.rallyButtonText}>Point Équipe B</Text>
-            </TouchableOpacity>
+            <View style={styles.rallyButtonColumn}>
+              <TouchableOpacity
+                style={[styles.rallyButton, styles.rallyButtonA]}
+                onPress={handlePointA}
+              >
+                <Text style={styles.rallyButtonText}>✅ Point Équipe A</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.rallyButton, styles.rallyButtonRemove]}
+                onPress={handleRemovePointA}
+              >
+                <Text style={styles.rallyButtonText}>❌ Retirer Point A</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.rallyButtonColumn}>
+              <TouchableOpacity
+                style={[styles.rallyButton, styles.rallyButtonB]}
+                onPress={handlePointB}
+              >
+                <Text style={styles.rallyButtonText}>✅ Point Équipe B</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.rallyButton, styles.rallyButtonRemove]}
+                onPress={handleRemovePointB}
+              >
+                <Text style={styles.rallyButtonText}>❌ Retirer Point B</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -419,14 +481,6 @@ const VBSTATS = () => {
           </View>
         </View>
       {/* </View> */}
-
-      {/* Modal de changement de joueurs */}
-      <PlayerSwitchModal
-        visible={showSwitchModal}
-        onClose={() => setShowSwitchModal(false)}
-        players={players}
-        onPlayersReordered={handlePlayersReordered}
-      />
     </SafeAreaView>
   );
 };
@@ -807,9 +861,12 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
   },
-  rallyButton: {
+  rallyButtonColumn: {
     flex: 1,
-    paddingVertical: 16,
+    gap: 6,
+  },
+  rallyButton: {
+    paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -825,10 +882,13 @@ const styles = StyleSheet.create({
   rallyButtonB: {
     backgroundColor: '#3b82f6',
   },
+  rallyButtonRemove: {
+    backgroundColor: '#ef4444',
+  },
   rallyButtonText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 14,
   },
 });
 
