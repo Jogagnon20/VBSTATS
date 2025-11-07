@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Alert,
   Dimensions,
@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { csvService } from '@/Service/CsvService';
+import PlayerSwitchModal, { Player } from '@/components/PlayerSwitchModal';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -22,15 +24,57 @@ const VBSTATS = () => {
   const [changementB, setChangementB] = useState(0);
   const [mancheA, setMancheA] = useState(0);
   const [mancheB, setMancheB] = useState(0);
+  const [showSwitchModal, setShowSwitchModal] = useState(false);
+
+  // État des joueurs avec positions
+  const [players, setPlayers] = useState<Player[]>([
+    { id: '1', number: '4', name: 'Joueur 4', position: 4 },
+    { id: '2', number: '3', name: 'Joueur 3', position: 3 },
+    { id: '3', number: '2', name: 'Joueur 2', position: 2 },
+    { id: '4', number: '5', name: 'Joueur 5', position: 5 },
+    { id: '5', number: '6', name: 'Joueur 6', position: 6 },
+    { id: '6', number: '1', name: 'Joueur 1', position: 1 },
+  ]);
+
+  // Initialiser le fichier CSV au chargement
+  useEffect(() => {
+    csvService.initializeCsv().catch((error) => {
+      console.error('Erreur lors de l\'initialisation du CSV:', error);
+    });
+  }, []);
+
+  // Fonction pour réorganiser les joueurs après le drag & drop
+  const handlePlayersReordered = (reorderedPlayers: Player[]) => {
+    setPlayers(reorderedPlayers);
+    Alert.alert('Succès', 'Les positions des joueurs ont été mises à jour');
+  };
+
+  // Fonction pour obtenir un joueur par position
+  const getPlayerByPosition = (position: number): Player => {
+    return players.find((p) => p.position === position) || { id: '0', number: '?', name: 'Inconnu', position };
+  };
 
   //handler pour les action des joueurs
-  const handlePlayerAction = (player, action) => {
+  const handlePlayerAction = async (player: string, action: string) => {
+    const timestamp = new Date().toISOString();
+    const scoreInfo = `${scoreA}-${scoreB}`;
+    const mancheInfo = `${mancheA}-${mancheB}`;
+
+    // Enregistrer dans le CSV
+    await csvService.logAction({
+      timestamp,
+      player,
+      action,
+      score: scoreInfo,
+      manche: mancheInfo,
+    });
+
     Alert.alert('Action', `${player} - ${action}`);
   };
 
   //handler pour les changements
   const handleSwitch = () => {
-    Alert.alert('Switch', 'Changement d\'équipes effectué');
+    setShowSwitchModal(true);
   };
 
   //handler pour les time outs
@@ -38,7 +82,20 @@ const VBSTATS = () => {
     Alert.alert('Time Out', 'Time Out demandé');
   };
 
-  const handlePasse = (section) => {
+  const handlePasse = async (section: string) => {
+    const timestamp = new Date().toISOString();
+    const scoreInfo = `${scoreA}-${scoreB}`;
+    const mancheInfo = `${mancheA}-${mancheB}`;
+
+    // Enregistrer dans le CSV
+    await csvService.logAction({
+      timestamp,
+      player: 'Équipe',
+      action: `Passe - ${section}`,
+      score: scoreInfo,
+      manche: mancheInfo,
+    });
+
     Alert.alert('Passe', `Passe effectuée - ${section}`);
   };
 
@@ -71,7 +128,13 @@ const VBSTATS = () => {
     setScoreB(0);
   }
 
-  const PlayerGroup = ({ playerNumber, playerName }) => (
+  interface PlayerGroupProps {
+    rotationNumber?: string;
+    playerNumber: string;
+    playerName: string;
+  }
+
+  const PlayerGroup = ({ playerNumber, playerName }: PlayerGroupProps) => (
     <View style={styles.playerGroup}>
       <Text style={styles.playerNumber}>{playerNumber} | {playerName}</Text>
       <View style={styles.playerControls}>
@@ -210,9 +273,18 @@ const VBSTATS = () => {
               <Text style={styles.playersHeader}>Ligne Avant</Text>
               <View style={styles.playersContainer}>
                 <View style={styles.playerRow}>
-                  <PlayerGroup rotationNumber="4" playerNumber="Numéro" playerName="Joueur" />
-                  <PlayerGroup rotationNumber="3" playerNumber="Numéro" playerName="Joueur" />
-                  <PlayerGroup rotationNumber="2" playerNumber="Numéro" playerName="Joueur" />
+                  <PlayerGroup
+                    playerNumber={getPlayerByPosition(4).number}
+                    playerName={getPlayerByPosition(4).name}
+                  />
+                  <PlayerGroup
+                    playerNumber={getPlayerByPosition(3).number}
+                    playerName={getPlayerByPosition(3).name}
+                  />
+                  <PlayerGroup
+                    playerNumber={getPlayerByPosition(2).number}
+                    playerName={getPlayerByPosition(2).name}
+                  />
                 </View>
               </View>
             </View>
@@ -222,9 +294,18 @@ const VBSTATS = () => {
               <Text style={styles.playersHeader}>Ligne Arrière</Text>
               <View style={styles.playersContainer}>
                 <View style={styles.playerRow}>
-                  <PlayerGroup rotationNumber="5" playerNumber="Numéro" playerName="Joueur" />
-                  <PlayerGroup rotationNumber="6" playerNumber="Numéro" playerName="Joueur" />
-                  <PlayerGroup rotationNumber="1" playerNumber="Numéro" playerName="Joueur" />
+                  <PlayerGroup
+                    playerNumber={getPlayerByPosition(5).number}
+                    playerName={getPlayerByPosition(5).name}
+                  />
+                  <PlayerGroup
+                    playerNumber={getPlayerByPosition(6).number}
+                    playerName={getPlayerByPosition(6).name}
+                  />
+                  <PlayerGroup
+                    playerNumber={getPlayerByPosition(1).number}
+                    playerName={getPlayerByPosition(1).name}
+                  />
                 </View>
               </View>
             </View>
@@ -306,6 +387,14 @@ const VBSTATS = () => {
           </View>
         </View>
       {/* </View> */}
+
+      {/* Modal de changement de joueurs */}
+      <PlayerSwitchModal
+        visible={showSwitchModal}
+        onClose={() => setShowSwitchModal(false)}
+        players={players}
+        onPlayersReordered={handlePlayersReordered}
+      />
     </SafeAreaView>
   );
 };
