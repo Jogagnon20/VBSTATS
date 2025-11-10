@@ -28,6 +28,9 @@ const VBSTATS = () => {
   const [mancheA, setMancheA] = useState(0);
   const [mancheB, setMancheB] = useState(0);
 
+  // État pour tracker quelle équipe a le service ('A', 'B', ou null au début)
+  const [serviceTeam, setServiceTeam] = useState<'A' | 'B' | null>(null);
+
   // États pour les timers
   const [showSetTimer, setShowSetTimer] = useState(false);
   const [showTimeOutTimer, setShowTimeOutTimer] = useState(false);
@@ -58,6 +61,41 @@ const VBSTATS = () => {
   // Fonction pour obtenir un joueur par position
   const getPlayerByPosition = (position: number): Player => {
     return players.find((p) => p.position === position) || { id: '0', number: '?', name: 'Inconnu', position };
+  };
+
+  // Fonction pour faire la rotation des joueurs dans le sens horaire
+  const rotatePlayersClockwise = () => {
+    const newPlayers = players.map((player) => {
+      let newPosition: number;
+      // Rotation dans le sens horaire : 1→6→5→4→3→2→1
+      switch (player.position) {
+        case 1:
+          newPosition = 6;
+          break;
+        case 6:
+          newPosition = 5;
+          break;
+        case 5:
+          newPosition = 4;
+          break;
+        case 4:
+          newPosition = 3;
+          break;
+        case 3:
+          newPosition = 2;
+          break;
+        case 2:
+          newPosition = 1;
+          break;
+        default:
+          newPosition = player.position;
+      }
+      return { ...player, position: newPosition };
+    });
+
+    // Trier par position
+    newPlayers.sort((a, b) => a.position - b.position);
+    setPlayers(newPlayers);
   };
 
   //handler pour les action des joueurs
@@ -110,14 +148,32 @@ const VBSTATS = () => {
     const timestamp = new Date().toISOString();
     const newScore = scoreA + 1;
 
+    // Vérifier si l'équipe A récupère le service (rotation nécessaire)
+    const needsRotation = serviceTeam !== 'A' && serviceTeam !== null;
+
     // Enregistrer la fin du rally dans le CSV
     await csvService.logAction({
       timestamp,
       player: 'ÉQUIPE A',
-      action: 'Point gagné - Fin de rally',
+      action: `Point gagné - Fin de rally${needsRotation ? ' (Récupération de service - Rotation)' : ' (Service conservé)'}`,
       score: `${newScore}-${scoreB}`,
       manche: `${mancheA}-${mancheB}`,
     });
+
+    // Si l'équipe A récupère le service, faire la rotation
+    if (needsRotation) {
+      rotatePlayersClockwise();
+      await csvService.logAction({
+        timestamp: new Date().toISOString(),
+        player: 'ÉQUIPE A',
+        action: 'Rotation des joueurs',
+        score: `${newScore}-${scoreB}`,
+        manche: `${mancheA}-${mancheB}`,
+      });
+    }
+
+    // Mettre à jour le service pour l'équipe A
+    setServiceTeam('A');
 
     if(scoreA < 25){
       setScoreA(newScore);
@@ -131,14 +187,32 @@ const VBSTATS = () => {
     const timestamp = new Date().toISOString();
     const newScore = scoreB + 1;
 
+    // Vérifier si l'équipe B récupère le service (rotation nécessaire)
+    const needsRotation = serviceTeam !== 'B' && serviceTeam !== null;
+
     // Enregistrer la fin du rally dans le CSV
     await csvService.logAction({
       timestamp,
       player: 'ÉQUIPE B',
-      action: 'Point gagné - Fin de rally',
+      action: `Point gagné - Fin de rally${needsRotation ? ' (Récupération de service - Rotation)' : ' (Service conservé)'}`,
       score: `${scoreA}-${newScore}`,
       manche: `${mancheA}-${mancheB}`,
     });
+
+    // Si l'équipe B récupère le service, faire la rotation
+    if (needsRotation) {
+      rotatePlayersClockwise();
+      await csvService.logAction({
+        timestamp: new Date().toISOString(),
+        player: 'ÉQUIPE B',
+        action: 'Rotation des joueurs',
+        score: `${scoreA}-${newScore}`,
+        manche: `${mancheA}-${mancheB}`,
+      });
+    }
+
+    // Mettre à jour le service pour l'équipe B
+    setServiceTeam('B');
 
     if(scoreB < 25){
       setScoreB(newScore);
@@ -156,6 +230,9 @@ const VBSTATS = () => {
     }
     setScoreA(0);
     setScoreB(0);
+
+    // Réinitialiser le service pour le nouveau set
+    setServiceTeam(null);
 
     // Démarrer le timer de 3 minutes pour la fin du set
     setShowSetTimer(true);
@@ -297,11 +374,17 @@ const VBSTATS = () => {
                   <View style={styles.setBox}>
                     <Text style={styles.setBtnText}>{mancheA}</Text>
                     <Text style={styles.mainScoreText}>{scoreA}</Text>
+                    {serviceTeam === 'A' && (
+                      <Text style={styles.serviceIndicator}>🏐 SERVICE</Text>
+                    )}
                   </View>
                   <Text style={styles.vsText}>VS</Text>
                   <View style={styles.setBox}>
                     <Text style={styles.setBtnText}>{mancheB}</Text>
                     <Text style={styles.mainScoreText}>{scoreB}</Text>
+                    {serviceTeam === 'B' && (
+                      <Text style={styles.serviceIndicator}>🏐 SERVICE</Text>
+                    )}
                   </View>
                 </View>
               </View>
@@ -617,6 +700,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#6b7280',
     fontSize: 12,
+  },
+  serviceIndicator: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#10b981',
+    marginTop: 4,
+    textAlign: 'center',
   },
 
   // Section Controls
