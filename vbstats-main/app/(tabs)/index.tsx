@@ -336,47 +336,38 @@ const VBSTATS = () => {
 
           {/* Sections des joueurs */}
           <View style={styles.playersMainSection}>
-            {/* <Text style={styles.playersSectionTitle}>GESTION DES JOUEURS</Text> */}
-            
-            {/* Ligne Avant */}
-            <View style={styles.lineSubSection}>
-              <Text style={styles.playersHeader}>Ligne Avant</Text>
-              <View style={styles.playersContainer}>
-                <View style={styles.playerRow}>
-                  <PlayerGroup
-                    playerNumber={getPlayerByPosition(4).number}
-                    playerName={getPlayerByPosition(4).name}
-                  />
-                  <PlayerGroup
-                    playerNumber={getPlayerByPosition(3).number}
-                    playerName={getPlayerByPosition(3).name}
-                  />
-                  <PlayerGroup
-                    playerNumber={getPlayerByPosition(2).number}
-                    playerName={getPlayerByPosition(2).name}
-                  />
-                </View>
+            {/* Tous les joueurs regroupés */}
+            <View style={styles.playersContainer}>
+              {/* Ligne Avant */}
+              <View style={styles.playerRow}>
+                <PlayerGroup
+                  playerNumber={getPlayerByPosition(4).number}
+                  playerName={getPlayerByPosition(4).name}
+                />
+                <PlayerGroup
+                  playerNumber={getPlayerByPosition(3).number}
+                  playerName={getPlayerByPosition(3).name}
+                />
+                <PlayerGroup
+                  playerNumber={getPlayerByPosition(2).number}
+                  playerName={getPlayerByPosition(2).name}
+                />
               </View>
-            </View>
 
-            {/* Ligne Arrière */}
-            <View style={styles.lineSubSection}>
-              <Text style={styles.playersHeader}>Ligne Arrière</Text>
-              <View style={styles.playersContainer}>
-                <View style={styles.playerRow}>
-                  <PlayerGroup
-                    playerNumber={getPlayerByPosition(5).number}
-                    playerName={getPlayerByPosition(5).name}
-                  />
-                  <PlayerGroup
-                    playerNumber={getPlayerByPosition(6).number}
-                    playerName={getPlayerByPosition(6).name}
-                  />
-                  <PlayerGroup
-                    playerNumber={getPlayerByPosition(1).number}
-                    playerName={getPlayerByPosition(1).name}
-                  />
-                </View>
+              {/* Ligne Arrière */}
+              <View style={styles.playerRow}>
+                <PlayerGroup
+                  playerNumber={getPlayerByPosition(5).number}
+                  playerName={getPlayerByPosition(5).name}
+                />
+                <PlayerGroup
+                  playerNumber={getPlayerByPosition(6).number}
+                  playerName={getPlayerByPosition(6).name}
+                />
+                <PlayerGroup
+                  playerNumber={getPlayerByPosition(1).number}
+                  playerName={getPlayerByPosition(1).name}
+                />
               </View>
             </View>
           </View>
@@ -671,45 +662,29 @@ const styles = StyleSheet.create({
     padding: 8,
     elevation: 2,
   },
-  playersSectionTitle: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    textAlign: 'center',
-    color: '#5b21b6',
-    marginBottom: 6,
-  },
-  lineSubSection: {
-    marginBottom: 6,
-  },
-  playersHeader: {
-    fontWeight: 'bold',
-    fontSize: 12,
-    textAlign: 'center',
-    backgroundColor: '#ede9fe',
-    color: '#5b21b6',
-    padding: 4,
-    borderRadius: 4,
-    marginBottom: 6,
-  },
   playersContainer: {
+    flex: 1,
     backgroundColor: '#faf5ff',
     borderWidth: 1,
     borderColor: '#c4b5fd',
     borderRadius: 6,
-    padding: 6,
+    padding: 8,
+    justifyContent: 'space-between',
   },
   playerRow: {
     flexDirection: 'row',
-    gap: 20,
+    gap: 8,
+    flex: 1,
   },
   playerGroup: {
     alignItems: 'center',
     flex: 1,
+    justifyContent: 'space-between',
   },
   playerNumber: {
     fontWeight: 'bold',
-    marginBottom: 4,
-    fontSize: 11,
+    marginBottom: 6,
+    fontSize: 12,
     color: '#1f2937',
   },
   playerControls: {
@@ -722,13 +697,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#3b82f6',
     borderWidth: 1,
     borderColor: '#2563eb',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 4,
     borderRadius: 6,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 40,
+    height: 45,
   },
   playerBtnText: {
     fontSize: 13,
@@ -745,16 +720,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#ef4444',
     borderWidth: 1,
     borderColor: '#dc2626',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 4,
     borderRadius: 6,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 40,
+    height: 45,
   },
   actionBtnText: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#ffffff',
     fontWeight: 'bold',
     textAlign: 'center',
@@ -763,18 +738,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#06b6d4',
     borderWidth: 1,
     borderColor: '#0891b2',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 4,
     borderRadius: 6,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 40,
+    height: 45,
   },
   passeBtnText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: 13,
     textAlign: 'center',
   },
 
